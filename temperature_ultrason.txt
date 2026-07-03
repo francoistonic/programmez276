@@ -1,0 +1,62 @@
+
+/////////////////////////////////////////////////////////////
+//Calcul de la témpérature en fonction de la vitesse du son
+// Pierre Raufast - mai 2026
+// pierreraufast.com
+//////////////////////////////////////////////// e/////////////
+
+int emetteur = 13;  // émission UltraSon: fil bleu
+int recepteur = 12; //réception écho: fil vert
+long duree; // durée en ms renvoyée par le capteur HC-SR04
+
+// initialisation des connexions
+void setup() {
+  Serial.begin (9600);
+  pinMode(emetteur, OUTPUT); 
+  pinMode(recepteur, INPUT);
+}
+
+// boucle principale
+void loop() {
+
+  // init temp moyenne
+  float TempMoy=0.0;      
+  // nombre de mesures pour moyenner
+  int N = 100;  
+
+  //série de N mesures pour moyenner
+  for (int i=0; i<N; i++)
+  {
+    //Émission d'un pulse ultrason pendant 10 microsecondes
+    digitalWrite(emetteur, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(emetteur, LOW);
+
+    //temps de reception de l'écho
+    duree = pulseIn(recepteur, HIGH);
+    
+    // correction de la distance, étalonnée pour T = 21,2 > -0.88
+    // à étalonner en fonction du thermomètre de référence
+    float dist = 50-0.88;  
+    
+    // calcul de la vitesse du son v = d/t
+    float v = 2.0*dist/duree*10000.0;
+    
+    // calcul de la temperature avec la loi v = 20.06*sqrt(temp)
+    float t = ((v*v)/(20.05*20.05))-273.15;
+    
+    // ajout pour calculer les moyennes
+    TempMoy += t;
+    
+    // attente entre 2 mesures (100ms)
+    delay (100);
+  }
+  Serial.println("");
+  
+
+  // affiche le résultat 
+  Serial.print("  Temperature Moyenne = ");
+  Serial.print(TempMoy/N);
+  Serial.println("°C");
+  }
+
